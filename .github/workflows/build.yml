@@ -1,0 +1,70 @@
+name: Build and Release on Hekate Update
+
+on:
+  repository_dispatch:
+    types: [new-release]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          repository: kylefmohr/SwitchME
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+
+      - name: Download Hekate Release
+        uses: actions/download-artifact@v3
+        with:
+          url: https://api.github.com/repos/CTCaer/hekate/releases/latest
+          # You might need a PAT with read access to CTCaer/hekate if releases are not public
+          # headers:
+          #   Authorization: Bearer ${{ secrets.EXTERNAL_REPO_PAT }}
+
+      - name: Extract Hekate Release
+        run: |
+          ls -l
+          filename=$(ls *.zip)
+          echo "Found zip file: $filename"
+          unzip "$filename"
+          mv hekate*.bin hekate_ctcaer.bin
+
+      - name: Convert Hekate Binary
+        run: python3 binConverter.py hekate_ctcaer.bin
+
+      - name: Move Header File
+        run: mv hekate_ctcaer.h src/
+
+      - name: Build with PlatformIO
+        run: python3 -m platformio run
+
+      - name: Convert to UF2
+        run: node bin2uf2.js .pio/build/seeed_xiao/firmware.bin
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          release_name: Latest UF2 Firmware
+          body: "Automatically built and released UF2 firmware based on the latest Hekate release."
+          draft: false
+          prerelease: false
+          asset_path: flash.uf2
+          asset_name: flash.uf2
+          asset_content_type: application/octet-stream
