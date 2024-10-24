@@ -65,6 +65,13 @@ jobs:
           body: "Automatically built and released UF2 firmware based on the latest Hekate release."
           draft: false
           prerelease: false
-          asset_path: flash.uf2
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./flash.uf2
           asset_name: flash.uf2
           asset_content_type: application/octet-stream
