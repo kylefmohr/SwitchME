@@ -26,14 +26,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
-
+          
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+        
       - name: Download Hekate Release
-        uses: actions/download-artifact@v3
-        with:
-          url: https://api.github.com/repos/CTCaer/hekate/releases/latest
-          # You might need a PAT with read access to CTCaer/hekate if releases are not public
-          # headers:
-          #   Authorization: Bearer ${{ secrets.EXTERNAL_REPO_PAT }}
+        run: |
+          LATEST_RELEASE_URL=$(curl -s https://api.github.com/repos/CTCaer/hekate/releases/latest | jq -r '.assets[] | select(.name | startswith("hekate") and endswith(".zip")) | .browser_download_url')
+          wget "$LATEST_RELEASE_URL"
 
       - name: Extract Hekate Release
         run: |
