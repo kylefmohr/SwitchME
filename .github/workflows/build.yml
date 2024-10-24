@@ -56,11 +56,12 @@ jobs:
         run: node bin2uf2.js .pio/build/seeed_xiao/firmware.bin
 
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: latest
+          tag_name: release-${{ github.run_number }}
           release_name: Latest UF2 Firmware
           body: "Automatically built and released UF2 firmware based on the latest Hekate release."
           draft: false
