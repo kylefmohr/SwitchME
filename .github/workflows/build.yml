@@ -20,7 +20,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install PlatformIO
-        run: pip install platformio
+        run: pip install platformio tqdm
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
